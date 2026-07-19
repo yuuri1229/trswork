@@ -1,5 +1,4 @@
-import type { TimeEntry } from '../types/entry';
-import type { Settings } from './storage';
+import type { Settings, TimeEntry } from '../types/entry';
 
 export interface SyncResult {
   ok: boolean;

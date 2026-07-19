@@ -1,10 +1,10 @@
-import { useState } from 'react';
-import type { Settings } from '../lib/storage';
+import { useEffect, useState } from 'react';
+import type { Settings } from '../types/entry';
 import type { TimeEntry } from '../types/entry';
 
 interface SettingsPanelProps {
   settings: Settings;
-  onChange: (settings: Settings) => void;
+  onChange: (settings: Settings) => Promise<void>;
   unsyncedEntries: TimeEntry[];
   syncStatus: Record<string, 'pending' | 'ok' | 'error'>;
   onRetrySync: (id: string) => void;
@@ -19,10 +19,15 @@ export default function SettingsPanel({
 }: SettingsPanelProps) {
   const [draft, setDraft] = useState(settings);
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  const handleSave = (e: React.FormEvent) => {
+  useEffect(() => setDraft(settings), [settings]);
+
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    onChange(draft);
+    setSaving(true);
+    await onChange(draft);
+    setSaving(false);
     setSaved(true);
     window.setTimeout(() => setSaved(false), 1500);
   };
@@ -81,9 +86,10 @@ export default function SettingsPanel({
         <div className="flex items-center gap-3">
           <button
             type="submit"
-            className="rounded-lg bg-emerald-600 px-5 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
+            disabled={saving}
+            className="rounded-lg bg-emerald-600 px-5 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60"
           >
-            保存
+            {saving ? '保存中…' : '保存'}
           </button>
           {saved && <span className="text-xs text-emerald-600">保存しました</span>}
         </div>

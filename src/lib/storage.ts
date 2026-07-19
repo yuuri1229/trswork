@@ -1,41 +1,15 @@
-import type { RunningTimer, TimeEntry } from '../types/entry';
+import type { RunningTimer } from '../types/entry';
 
-const ENTRIES_KEY = 'trswork.entries.v1';
-const TIMER_KEY = 'trswork.runningTimer.v1';
-const SETTINGS_KEY = 'trswork.settings.v1';
+const TIMER_KEY_PREFIX = 'trswork.runningTimer.v1.';
 
-export interface Settings {
-  workerName: string;
-  sheetsWebAppUrl: string;
-  sheetsSharedSecret: string;
-  autoSync: boolean;
-}
+// The in-progress timer is kept device-local (not synced to Firestore) since
+// it only makes sense to resume it on the same device/browser it was
+// started on. Namespaced by uid so switching accounts on a shared device
+// doesn't leak one user's running timer into another's session.
 
-const defaultSettings: Settings = {
-  workerName: '',
-  sheetsWebAppUrl: '',
-  sheetsSharedSecret: '',
-  autoSync: false,
-};
-
-export function loadEntries(): TimeEntry[] {
+export function loadRunningTimer(uid: string): RunningTimer | null {
   try {
-    const raw = localStorage.getItem(ENTRIES_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw) as TimeEntry[];
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
-
-export function saveEntries(entries: TimeEntry[]): void {
-  localStorage.setItem(ENTRIES_KEY, JSON.stringify(entries));
-}
-
-export function loadRunningTimer(): RunningTimer | null {
-  try {
-    const raw = localStorage.getItem(TIMER_KEY);
+    const raw = localStorage.getItem(TIMER_KEY_PREFIX + uid);
     if (!raw) return null;
     return JSON.parse(raw) as RunningTimer;
   } catch {
@@ -43,24 +17,10 @@ export function loadRunningTimer(): RunningTimer | null {
   }
 }
 
-export function saveRunningTimer(timer: RunningTimer | null): void {
+export function saveRunningTimer(uid: string, timer: RunningTimer | null): void {
   if (timer) {
-    localStorage.setItem(TIMER_KEY, JSON.stringify(timer));
+    localStorage.setItem(TIMER_KEY_PREFIX + uid, JSON.stringify(timer));
   } else {
-    localStorage.removeItem(TIMER_KEY);
+    localStorage.removeItem(TIMER_KEY_PREFIX + uid);
   }
-}
-
-export function loadSettings(): Settings {
-  try {
-    const raw = localStorage.getItem(SETTINGS_KEY);
-    if (!raw) return defaultSettings;
-    return { ...defaultSettings, ...(JSON.parse(raw) as Partial<Settings>) };
-  } catch {
-    return defaultSettings;
-  }
-}
-
-export function saveSettings(settings: Settings): void {
-  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
 }

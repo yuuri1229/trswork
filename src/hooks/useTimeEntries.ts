@@ -1,35 +1,64 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import type { TimeEntry } from '../types/entry';
+import type { User } from 'firebase/auth';
 import {
-  loadEntries,
-  loadRunningTimer,
-  loadSettings,
-  saveEntries,
-  saveRunningTimer,
-  saveSettings,
-  type Settings,
-} from '../lib/storage';
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  onSnapshot,
+  orderBy,
+  query,
+  setDoc,
+  updateDoc,
+} from 'firebase/firestore';
+import type { TimeEntry } from '../types/entry';
+import { defaultSettings, type Settings } from '../types/entry';
+import { db } from '../lib/firebase';
+import { loadRunningTimer, saveRunningTimer } from '../lib/storage';
 import { syncEntryToSheets } from '../lib/sheetsSync';
 import { toDateKey } from '../lib/dateUtils';
 
-function makeId(): string {
-  return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-}
-
-export function useTimeEntries() {
-  const [entries, setEntries] = useState<TimeEntry[]>(() => loadEntries());
+export function useTimeEntries(user: User) {
+  const uid = user.uid;
+  const [entries, setEntries] = useState<TimeEntry[]>([]);
+  const [entriesLoaded, setEntriesLoaded] = useState(false);
   const [runningStartedAt, setRunningStartedAt] = useState<string | null>(
-    () => loadRunningTimer()?.startedAt ?? null,
+    () => loadRunningTimer(uid)?.startedAt ?? null,
   );
-  const [settings, setSettings] = useState<Settings>(() => loadSettings());
+  const [settings, setSettingsState] = useState<Settings>(defaultSettings);
   const [syncStatus, setSyncStatus] = useState<Record<string, 'pending' | 'ok' | 'error'>>({});
 
-  useEffect(() => saveEntries(entries), [entries]);
+  useEffect(() => {
+    if (!db) return;
+    const entriesQuery = query(collection(db, 'users', uid, 'entries'), orderBy('startedAt', 'asc'));
+    const unsubscribe = onSnapshot(entriesQuery, (snapshot) => {
+      setEntries(snapshot.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<TimeEntry, 'id'>) })));
+      setEntriesLoaded(true);
+    });
+    return unsubscribe;
+  }, [uid]);
+
+  useEffect(() => {
+    if (!db) return;
+    const settingsRef = doc(db, 'users', uid, 'settings', 'main');
+    const unsubscribe = onSnapshot(settingsRef, (snap) => {
+      setSettingsState(snap.exists() ? { ...defaultSettings, ...(snap.data() as Partial<Settings>) } : defaultSettings);
+    });
+    return unsubscribe;
+  }, [uid]);
+
   useEffect(
-    () => saveRunningTimer(runningStartedAt ? { startedAt: runningStartedAt } : null),
-    [runningStartedAt],
+    () => saveRunningTimer(uid, runningStartedAt ? { startedAt: runningStartedAt } : null),
+    [uid, runningStartedAt],
   );
-  useEffect(() => saveSettings(settings), [settings]);
+
+  const setSettings = useCallback(
+    async (next: Settings) => {
+      if (!db) return;
+      await setDoc(doc(db, 'users', uid, 'settings', 'main'), next);
+    },
+    [uid],
+  );
 
   const isRunning = runningStartedAt !== null;
 
@@ -44,12 +73,11 @@ export function useTimeEntries() {
 
   const finish = useCallback(
     async (title: string) => {
-      if (!runningStartedAt) return;
+      if (!runningStartedAt || !db) return;
       const start = new Date(runningStartedAt);
       const end = new Date();
       const minutes = Math.max(1, Math.round((end.getTime() - start.getTime()) / 60000));
-      const entry: TimeEntry = {
-        id: makeId(),
+      const entryData: Omit<TimeEntry, 'id'> = {
         date: toDateKey(start),
         startedAt: start.toISOString(),
         endedAt: end.toISOString(),
@@ -57,44 +85,52 @@ export function useTimeEntries() {
         title: title.trim() || '(無題)',
         synced: false,
       };
-      setEntries((prev) => [...prev, entry]);
+      const docRef = await addDoc(collection(db, 'users', uid, 'entries'), entryData);
       setRunningStartedAt(null);
 
       if (settings.autoSync && settings.sheetsWebAppUrl) {
+        const entry: TimeEntry = { id: docRef.id, ...entryData };
         setSyncStatus((prev) => ({ ...prev, [entry.id]: 'pending' }));
         const result = await syncEntryToSheets(entry, settings);
         setSyncStatus((prev) => ({ ...prev, [entry.id]: result.ok ? 'ok' : 'error' }));
         if (result.ok) {
-          setEntries((prev) =>
-            prev.map((e) => (e.id === entry.id ? { ...e, synced: true } : e)),
-          );
+          await updateDoc(doc(db, 'users', uid, 'entries', entry.id), { synced: true });
         }
       }
     },
-    [runningStartedAt, settings],
+    [runningStartedAt, settings, uid],
   );
 
   const retrySync = useCallback(
     async (id: string) => {
+      if (!db) return;
       const entry = entries.find((e) => e.id === id);
       if (!entry) return;
       setSyncStatus((prev) => ({ ...prev, [id]: 'pending' }));
       const result = await syncEntryToSheets(entry, settings);
       setSyncStatus((prev) => ({ ...prev, [id]: result.ok ? 'ok' : 'error' }));
       if (result.ok) {
-        setEntries((prev) => prev.map((e) => (e.id === id ? { ...e, synced: true } : e)));
+        await updateDoc(doc(db, 'users', uid, 'entries', id), { synced: true });
       }
     },
-    [entries, settings],
+    [entries, settings, uid],
   );
 
-  const deleteEntry = useCallback((id: string) => {
-    setEntries((prev) => prev.filter((e) => e.id !== id));
-  }, []);
+  const deleteEntry = useCallback(
+    async (id: string) => {
+      if (!db) return;
+      await deleteDoc(doc(db, 'users', uid, 'entries', id));
+    },
+    [uid],
+  );
 
-  const updateEntry = useCallback((id: string, patch: Partial<Pick<TimeEntry, 'title' | 'minutes'>>) => {
-    setEntries((prev) => prev.map((e) => (e.id === id ? { ...e, ...patch } : e)));
-  }, []);
+  const updateEntry = useCallback(
+    async (id: string, patch: Partial<Pick<TimeEntry, 'title' | 'minutes'>>) => {
+      if (!db) return;
+      await updateDoc(doc(db, 'users', uid, 'entries', id), patch);
+    },
+    [uid],
+  );
 
   const entriesByDate = useMemo(() => {
     const map = new Map<string, TimeEntry[]>();
@@ -108,6 +144,7 @@ export function useTimeEntries() {
 
   return {
     entries,
+    entriesLoaded,
     entriesByDate,
     isRunning,
     runningStartedAt,

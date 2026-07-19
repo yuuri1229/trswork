@@ -17,3 +17,17 @@ export interface TimeEntry {
 export interface RunningTimer {
   startedAt: string;
 }
+
+export interface Settings {
+  workerName: string;
+  sheetsWebAppUrl: string;
+  sheetsSharedSecret: string;
+  autoSync: boolean;
+}
+
+export const defaultSettings: Settings = {
+  workerName: '',
+  sheetsWebAppUrl: '',
+  sheetsSharedSecret: '',
+  autoSync: false,
+};

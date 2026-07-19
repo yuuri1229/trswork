@@ -6,16 +6,52 @@
 - カレンダー表示で日ごとの作業時間・複数件の作業を確認
 - 月別の作業時間を棒グラフで表示
 - Google Apps Script 経由で Google スプレッドシートへ自動反映（任意）
-- データは端末のブラウザ（localStorage）に保存されます
+- メールアドレス・パスワードでのログイン機能。一人ひとりが自分のアカウントで、どの端末からでも自分の記録を確認できます（Firebase Authentication / Firestore を使用）
 
 ## 開発
 
 ```bash
 npm install
+cp .env.example .env.local  # Firebase の設定値を入力（下記参照）
 npm run dev
 ```
 
 `npm run build` で `dist/` に静的ファイルを出力します。
+
+## ログイン機能のセットアップ（Firebase）
+
+このアプリはログイン機能に [Firebase](https://firebase.google.com/) の Authentication（メール/パスワード認証）と Firestore（データベース）を使っています。GitHub Pages は静的ファイルしかホストできないため、サーバー機能は Firebase 側にお願いする構成です。
+
+1. [Firebase コンソール](https://console.firebase.google.com/) で新しいプロジェクトを作成する。
+2. 左メニュー「Authentication」→「Sign-in method」で **メール / パスワード** を有効化する。
+3. 左メニュー「Firestore Database」で **データベースを作成**する（本番モードでOK。後述のセキュリティルールを設定するため）。
+4. 「プロジェクトの設定」(⚙️アイコン) →「全般」→「マイアプリ」で **ウェブアプリを追加**し、表示される `firebaseConfig` の値(`apiKey` など)を控える。
+5. Firestore の「ルール」タブを開き、このリポジトリの [`firestore.rules`](./firestore.rules) の内容に置き換えて公開する。これにより、ログインした本人以外は自分以外のデータを読み書きできなくなります。
+
+### ローカル開発
+
+`.env.example` を `.env.local` にコピーし、控えた `firebaseConfig` の値を貼り付けてください（`.env.local` は git 管理対象外です）。
+
+### GitHub Pages への反映
+
+ビルド時に環境変数として埋め込む必要があるため、リポジトリの Settings → Secrets and variables → Actions → **New repository secret** で、以下の6つを追加してください（値は Firebase の `firebaseConfig` と同じ）。
+
+- `VITE_FIREBASE_API_KEY`
+- `VITE_FIREBASE_AUTH_DOMAIN`
+- `VITE_FIREBASE_PROJECT_ID`
+- `VITE_FIREBASE_STORAGE_BUCKET`
+- `VITE_FIREBASE_MESSAGING_SENDER_ID`
+- `VITE_FIREBASE_APP_ID`
+
+`.github/workflows/deploy.yml` が自動的にこれらを読み込んでビルドします。Firebase の `apiKey` はブラウザに公開される値なので機密情報ではありませんが、リポジトリを綺麗に保つため Secrets 経由にしています。実際のアクセス制御は Firestore のセキュリティルールが担っています。
+
+設定が済むまでは、アプリを開くと「Firebase が設定されていません」という案内が表示されます。
+
+### 使い方
+
+- 初回は「新規登録」タブで氏名・メールアドレス・パスワードを入力してアカウントを作成します。
+- 以降は「ログイン」タブでメールアドレスとパスワードを入力すればOKです。同じアカウントでログインすれば、どの端末からでも自分の記録・設定を確認できます。
+- 他の人にも使ってもらう場合は、それぞれが自分のメールアドレスで新規登録してください。データはユーザーごとに分離され、他人の記録は見えません。
 
 ## GitHub Pages へのホスティング
 
@@ -48,7 +84,7 @@ npm run dev
 ### 注意事項
 
 - Web アプリ URL を知っていれば誰でも書き込みリクエストを送れてしまうため、`SHARED_SECRET` の設定を推奨します。
-- ブラウザの localStorage が消去されると記録も失われます。定期的にスプレッドシート連携で反映しておくか、将来的なバックエンド連携をご検討ください。
+- 記録データは Firestore に保存されるため、ブラウザのデータを消してもログインし直せば復元されます。
 
 ## 今後について
 
