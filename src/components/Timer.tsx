@@ -32,13 +32,13 @@ export default function Timer({ isRunning, runningStartedAt, onStart, onFinish, 
   };
 
   return (
-    <div className="flex flex-col items-center gap-6 rounded-2xl bg-white p-8 shadow-sm ring-1 ring-slate-200">
-      <div className="text-sm font-medium tracking-wide text-slate-500">
+    <div className="flex flex-col items-center gap-6 rounded-2xl bg-white p-8 shadow-sm ring-1 ring-slate-200 dark:bg-slate-800 dark:ring-slate-700">
+      <div className="text-sm font-medium tracking-wide text-slate-500 dark:text-slate-400">
         {isRunning ? '作業中…' : '作業を開始してください'}
       </div>
       <div
         className={`font-mono text-6xl font-semibold tabular-nums ${
-          isRunning ? 'text-emerald-600' : 'text-slate-300'
+          isRunning ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-300 dark:text-slate-700'
         }`}
       >
         {formatElapsed(elapsedSeconds)}
@@ -47,7 +47,7 @@ export default function Timer({ isRunning, runningStartedAt, onStart, onFinish, 
         {!isRunning ? (
           <button
             onClick={onStart}
-            className="rounded-full bg-emerald-600 px-10 py-4 text-lg font-semibold text-white shadow hover:bg-emerald-700 active:scale-95 transition"
+            className="rounded-full bg-emerald-600 px-10 py-4 text-lg font-semibold text-white shadow hover:bg-emerald-700 active:scale-95 transition dark:bg-emerald-600 dark:hover:bg-emerald-500"
           >
             作業開始
           </button>
@@ -55,13 +55,13 @@ export default function Timer({ isRunning, runningStartedAt, onStart, onFinish, 
           <>
             <button
               onClick={() => setShowStopModal(true)}
-              className="rounded-full bg-rose-600 px-10 py-4 text-lg font-semibold text-white shadow hover:bg-rose-700 active:scale-95 transition"
+              className="rounded-full bg-rose-600 px-10 py-4 text-lg font-semibold text-white shadow hover:bg-rose-700 active:scale-95 transition dark:bg-rose-600 dark:hover:bg-rose-500"
             >
               作業終了
             </button>
             <button
               onClick={onCancel}
-              className="rounded-full bg-slate-100 px-6 py-4 text-sm font-medium text-slate-500 hover:bg-slate-200 transition"
+              className="rounded-full bg-slate-100 px-6 py-4 text-sm font-medium text-slate-500 hover:bg-slate-200 transition dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600"
             >
               キャンセル
             </button>

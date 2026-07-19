@@ -8,7 +8,6 @@ interface MonthlyBarChartProps {
   entries: TimeEntry[];
 }
 
-const BAR_COLOR = '#059669'; // emerald-600, single series = single accent hue
 const MONTHS_SHOWN = 12;
 
 export default function MonthlyBarChart({ entries }: MonthlyBarChartProps) {
@@ -35,12 +34,12 @@ export default function MonthlyBarChart({ entries }: MonthlyBarChartProps) {
   const barGap = 8;
 
   return (
-    <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200 sm:p-6">
+    <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200 sm:p-6 dark:bg-slate-800 dark:ring-slate-700">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-slate-800">月別作業時間</h2>
+        <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">月別作業時間</h2>
         <button
           onClick={() => setShowTable((v) => !v)}
-          className="text-xs font-medium text-slate-400 hover:text-slate-600 underline underline-offset-2"
+          className="text-xs font-medium text-slate-400 hover:text-slate-600 underline underline-offset-2 dark:text-slate-500 dark:hover:text-slate-300"
         >
           {showTable ? 'グラフで表示' : '表で表示'}
         </button>
@@ -49,16 +48,20 @@ export default function MonthlyBarChart({ entries }: MonthlyBarChartProps) {
       {showTable ? (
         <table className="mt-4 w-full text-sm">
           <thead>
-            <tr className="border-b border-slate-200 text-left text-slate-400">
+            <tr className="border-b border-slate-200 text-left text-slate-400 dark:border-slate-700 dark:text-slate-500">
               <th className="py-1 font-medium">月</th>
               <th className="py-1 font-medium">合計時間</th>
             </tr>
           </thead>
           <tbody>
             {data.map((d) => (
-              <tr key={d.month} className="border-b border-slate-100">
-                <td className="py-1.5 text-slate-700">{format(parseISO(`${d.month}-01`), 'yyyy年M月', { locale: ja })}</td>
-                <td className="py-1.5 tabular-nums text-slate-700">{formatHoursDecimal(d.minutes)} 時間</td>
+              <tr key={d.month} className="border-b border-slate-100 dark:border-slate-800">
+                <td className="py-1.5 text-slate-700 dark:text-slate-300">
+                  {format(parseISO(`${d.month}-01`), 'yyyy年M月', { locale: ja })}
+                </td>
+                <td className="py-1.5 tabular-nums text-slate-700 dark:text-slate-300">
+                  {formatHoursDecimal(d.minutes)} 時間
+                </td>
               </tr>
             ))}
           </tbody>
@@ -83,19 +86,20 @@ export default function MonthlyBarChart({ entries }: MonthlyBarChartProps) {
                   onMouseLeave={() => setHovered((h) => (h === d.month ? null : h))}
                 >
                   {isHovered && (
-                    <div className="absolute -top-8 z-10 whitespace-nowrap rounded-md bg-slate-800 px-2 py-1 text-[11px] font-medium text-white shadow">
+                    <div className="absolute -top-8 z-10 whitespace-nowrap rounded-md bg-slate-800 px-2 py-1 text-[11px] font-medium text-white shadow dark:bg-slate-950">
                       {formatHoursDecimal(d.minutes)} 時間
                     </div>
                   )}
                   <div
-                    className="w-full rounded-t-[4px] transition-opacity"
+                    className="w-full rounded-t-[4px] bg-emerald-600 transition-opacity dark:bg-emerald-500"
                     style={{
                       height: barHeight,
-                      backgroundColor: BAR_COLOR,
                       opacity: isHovered ? 1 : 0.85,
                     }}
                   />
-                  <span className="text-[10px] text-slate-400">{format(parseISO(`${d.month}-01`), 'M月')}</span>
+                  <span className="text-[10px] text-slate-400 dark:text-slate-500">
+                    {format(parseISO(`${d.month}-01`), 'M月')}
+                  </span>
                 </div>
               );
             })}
