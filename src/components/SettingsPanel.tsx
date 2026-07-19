@@ -41,7 +41,7 @@ export default function SettingsPanel({
           <input
             value={draft.workerName}
             onChange={(e) => setDraft({ ...draft, workerName: e.target.value })}
-            placeholder="甲斐悠理"
+            placeholder="山田 太郎"
             className="rounded-lg border border-slate-300 px-3 py-2 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100"
           />
         </label>
