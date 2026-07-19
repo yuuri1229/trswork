@@ -12,40 +12,18 @@
 
 ```bash
 npm install
-cp .env.example .env.local  # Firebase の設定値を入力（下記参照）
 npm run dev
 ```
 
 `npm run build` で `dist/` に静的ファイルを出力します。
 
-## ログイン機能のセットアップ（Firebase）
+## ログイン機能について（Firebase）
 
 このアプリはログイン機能に [Firebase](https://firebase.google.com/) の Authentication（メール/パスワード認証）と Firestore（データベース）を使っています。GitHub Pages は静的ファイルしかホストできないため、サーバー機能は Firebase 側にお願いする構成です。
 
-1. [Firebase コンソール](https://console.firebase.google.com/) で新しいプロジェクトを作成する。
-2. 左メニュー「Authentication」→「Sign-in method」で **メール / パスワード** を有効化する。
-3. 左メニュー「Firestore Database」で **データベースを作成**する（本番モードでOK。後述のセキュリティルールを設定するため）。
-4. 「プロジェクトの設定」(⚙️アイコン) →「全般」→「マイアプリ」で **ウェブアプリを追加**し、表示される `firebaseConfig` の値(`apiKey` など)を控える。
-5. Firestore の「ルール」タブを開き、このリポジトリの [`firestore.rules`](./firestore.rules) の内容に置き換えて公開する。これにより、ログインした本人以外は自分以外のデータを読み書きできなくなります。
+Firebase プロジェクト(`sagyoutime`)の接続情報は [`src/lib/firebase.ts`](./src/lib/firebase.ts) に直接記述しています。この値(`apiKey` など)は本来ブラウザに公開されて問題ない情報で、実際のアクセス制御は Firestore の [`firestore.rules`](./firestore.rules)（ログイン本人しか自分のデータを読み書きできない）が担っています。そのため GitHub Secrets などの追加設定なしでそのまま動作します。
 
-### ローカル開発
-
-`.env.example` を `.env.local` にコピーし、控えた `firebaseConfig` の値を貼り付けてください（`.env.local` は git 管理対象外です）。
-
-### GitHub Pages への反映
-
-ビルド時に環境変数として埋め込む必要があるため、リポジトリの Settings → Secrets and variables → Actions → **New repository secret** で、以下の6つを追加してください（値は Firebase の `firebaseConfig` と同じ）。
-
-- `VITE_FIREBASE_API_KEY`
-- `VITE_FIREBASE_AUTH_DOMAIN`
-- `VITE_FIREBASE_PROJECT_ID`
-- `VITE_FIREBASE_STORAGE_BUCKET`
-- `VITE_FIREBASE_MESSAGING_SENDER_ID`
-- `VITE_FIREBASE_APP_ID`
-
-`.github/workflows/deploy.yml` が自動的にこれらを読み込んでビルドします。Firebase の `apiKey` はブラウザに公開される値なので機密情報ではありませんが、リポジトリを綺麗に保つため Secrets 経由にしています。実際のアクセス制御は Firestore のセキュリティルールが担っています。
-
-設定が済むまでは、アプリを開くと「Firebase が設定されていません」という案内が表示されます。
+別の Firebase プロジェクトに差し替えたい場合は、`.env.example` を `.env.local` にコピーして `VITE_FIREBASE_*` を設定すれば、そちらが優先されます(ローカル開発用)。
 
 ### 使い方
 
