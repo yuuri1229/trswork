@@ -1,19 +1,21 @@
-import type { Settings, TimeEntry } from '../types/entry';
+import type { ExpenseEntry, RaceWorkEntry, Settings, TimeEntry } from '../types/entry';
 
 export interface SyncResult {
   ok: boolean;
   error?: string;
 }
 
+type SyncPayload =
+  | { type: 'work'; date: string; title: string; minutes: number }
+  | { type: 'expense'; date: string; category: string; detail: string; amount: number }
+  | { type: 'race'; date: string; eventName: string; days: number; amount: number };
+
 /**
- * Sends a single entry to the configured Google Apps Script Web App, which
- * appends it as a row in the target spreadsheet. The Apps Script endpoint is
- * a no-CORS-friendly POST accepting a JSON body; see google-apps-script/Code.gs.
+ * Posts a single row to the configured Google Apps Script Web App, which
+ * appends it to the target spreadsheet. The Apps Script endpoint is a
+ * no-CORS-friendly POST accepting a JSON body; see google-apps-script/Code.gs.
  */
-export async function syncEntryToSheets(
-  entry: TimeEntry,
-  settings: Settings,
-): Promise<SyncResult> {
+async function postToSheets(payload: SyncPayload, settings: Settings): Promise<SyncResult> {
   if (!settings.sheetsWebAppUrl) {
     return { ok: false, error: 'Google スプレッドシートの連携先が未設定です。' };
   }
@@ -24,10 +26,8 @@ export async function syncEntryToSheets(
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({
         secret: settings.sheetsSharedSecret,
-        date: entry.date,
-        title: entry.title,
-        minutes: entry.minutes,
         workerName: settings.workerName,
+        ...payload,
       }),
     });
 
@@ -42,4 +42,22 @@ export async function syncEntryToSheets(
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : String(err) };
   }
+}
+
+export function syncEntryToSheets(entry: TimeEntry, settings: Settings): Promise<SyncResult> {
+  return postToSheets({ type: 'work', date: entry.date, title: entry.title, minutes: entry.minutes }, settings);
+}
+
+export function syncExpenseToSheets(entry: ExpenseEntry, settings: Settings): Promise<SyncResult> {
+  return postToSheets(
+    { type: 'expense', date: entry.date, category: entry.category, detail: entry.detail, amount: entry.amount },
+    settings,
+  );
+}
+
+export function syncRaceWorkToSheets(entry: RaceWorkEntry, settings: Settings): Promise<SyncResult> {
+  return postToSheets(
+    { type: 'race', date: entry.date, eventName: entry.eventName, days: entry.days, amount: entry.amount },
+    settings,
+  );
 }

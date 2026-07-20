@@ -31,3 +31,46 @@ export const defaultSettings: Settings = {
   sheetsSharedSecret: '',
   autoSync: false,
 };
+
+export interface ExpenseEntry {
+  id: string;
+  /** Date the expense was incurred, formatted YYYY-MM-DD. */
+  date: string;
+  /** 科目 (account category). */
+  category: string;
+  /** 詳細 (free-text detail). */
+  detail: string;
+  /** 料金 (amount in yen). */
+  amount: number;
+  /** Whether this entry has been synced to Google Sheets. */
+  synced: boolean;
+}
+
+export const EXPENSE_CATEGORIES = [
+  '旅費交通費',
+  '通信費',
+  '消耗品費',
+  '会議費',
+  '交際費',
+  '宿泊費',
+  '会費',
+  '雑費',
+  'その他',
+] as const;
+
+/** Yen paid per day of race-day work. */
+export const RACE_WORK_DAILY_RATE = 16000;
+
+export interface RaceWorkEntry {
+  id: string;
+  /** Date of the race/event, formatted YYYY-MM-DD. */
+  date: string;
+  /** 大会名 (event/competition name). */
+  eventName: string;
+  /** 日数 (number of days worked). */
+  days: number;
+  /** days * RACE_WORK_DAILY_RATE, stored for easy display/sync. */
+  amount: number;
+  /** Whether this entry has been synced to Google Sheets. */
+  synced: boolean;
+}

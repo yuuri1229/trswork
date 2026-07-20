@@ -8,6 +8,9 @@
 - Google Apps Script 経由で Google スプレッドシートへ自動反映（任意）
 - メールアドレス・パスワードでのログイン機能。一人ひとりが自分のアカウントで、どの端末からでも自分の記録を確認できます（Firebase Authentication / Firestore を使用）
 - ダークモード対応。ライト / ダーク / システム(端末の設定に自動追従)を画面上部のボタンで切り替え可能
+- 「経費」タブで月ごとに管理
+  - 経費: 科目(一般的な勘定科目から選択)・詳細・料金を記録
+  - レース作業: 大会名・日数を記録すると、1日あたり16,000円で自動計算
 
 ## 開発
 
@@ -23,6 +26,8 @@ npm run dev
 このアプリはログイン機能に [Firebase](https://firebase.google.com/) の Authentication（メール/パスワード認証）と Firestore（データベース）を使っています。GitHub Pages は静的ファイルしかホストできないため、サーバー機能は Firebase 側にお願いする構成です。
 
 Firebase プロジェクト(`sagyoutime`)の接続情報は [`src/lib/firebase.ts`](./src/lib/firebase.ts) に直接記述しています。この値(`apiKey` など)は本来ブラウザに公開されて問題ない情報で、実際のアクセス制御は Firestore の [`firestore.rules`](./firestore.rules)（ログイン本人しか自分のデータを読み書きできない）が担っています。そのため GitHub Secrets などの追加設定なしでそのまま動作します。
+
+`firestore.rules` を更新した際は、Firebase コンソールの Firestore Database →「ルール」タブで内容を貼り替えて「公開」する必要があります（自動では反映されません）。
 
 別の Firebase プロジェクトに差し替えたい場合は、`.env.example` を `.env.local` にコピーして `VITE_FIREBASE_*` を設定すれば、そちらが優先されます(ローカル開発用)。
 
@@ -42,14 +47,14 @@ Firebase プロジェクト(`sagyoutime`)の接続情報は [`src/lib/firebase.t
 
 ## Google スプレッドシート連携（任意）
 
-作業終了時に、記録した日付・作業内容・作業時間（分）を自動でスプレッドシートへ追記できます。連携先は Google Apps Script を使って構築します。
+作業終了時・経費追加時・レース作業追加時に、それぞれの記録を自動でスプレッドシートへ追記できます。連携先は Google Apps Script を使って構築します。
 
 1. 連携したい Google スプレッドシートを開く。
 2. メニューの「拡張機能」→「Apps Script」を開く。
 3. デフォルトの `Code.gs` の中身を、このリポジトリの [`google-apps-script/Code.gs`](./google-apps-script/Code.gs) の内容で置き換える。
 4. 必要に応じてスクリプト冒頭の設定を編集する。
    - `SHARED_SECRET`: 任意の文字列を設定すると、アプリ側の「共有シークレット」と一致しない書き込みリクエストを拒否できます（推奨）。
-   - `DATE_COL` / `TITLE_COL` / `MINUTES_COL`: 日付・作業詳細・分を書き込む列。既定値はサンプルのシート構成（B列=日付、C列=作業詳細、D列=分）に合わせています。
+   - `DATE_COL` / `TITLE_COL` / `MINUTES_COL` / `RACE_DAYS_COL` / `EXPENSE_AMOUNT_COL` / `DETAIL_COL`: 各項目を書き込む列。既定値はサンプルのシート構成（B列=日付、C列=作業詳細、D列=分、E列=レース作業（日）、G列=経費、H列=詳細）に合わせています。経費の「科目」は詳細欄に `[科目名] 詳細` の形で書き込まれます（H列に科目専用の列がないため）。
    - `FIXED_SHEET_NAME`: 特定のシート（タブ）に固定したい場合に指定します。空欄のままだと、作業日の月に応じて `〇月` を含むタブ名を自動的に探し、見つからない場合はアクティブなシートに書き込みます。
 5. 「デプロイ」→「新しいデプロイ」→種類は「ウェブアプリ」を選択。
    - 「次のユーザーとして実行」: 自分

@@ -6,10 +6,15 @@
  * URL into the app's Settings screen as the "Google スプレッドシート連携 URL".
  *
  * Expects the sheet layout shown in the timesheet template: a title row,
- * a header row ("日付" / "作業詳細" / "分" / ...), one row per work entry,
- * and a "合計" (total) row below the entries with SUM() formulas. New
- * entries are inserted just above that "合計" row so the existing formulas
- * keep working.
+ * a header row ("日付" / "作業詳細" / "分" / "レース作業（日）" / "経費" /
+ * "詳細"), one row per entry, and a "合計" (total) row below the entries
+ * with SUM() formulas. New entries are inserted just above that "合計" row
+ * so the existing formulas keep working.
+ *
+ * Each request's `type` field selects which columns get written:
+ *   - "work":    DATE_COL, TITLE_COL, MINUTES_COL
+ *   - "expense": DATE_COL, EXPENSE_AMOUNT_COL, DETAIL_COL (category folded into the detail text)
+ *   - "race":    DATE_COL, RACE_DAYS_COL, DETAIL_COL (event name)
  */
 
 // ---- Configuration -------------------------------------------------------
@@ -23,7 +28,10 @@ const SHARED_SECRET = '';
 const DATE_COL = 'B'; // day-of-month, e.g. 6
 const TITLE_COL = 'C'; // 作業詳細
 const MINUTES_COL = 'D'; // 分
-const HEADER_ROW = 2; // row containing "日付" / "作業詳細" / "分"
+const RACE_DAYS_COL = 'E'; // レース作業（日）
+const EXPENSE_AMOUNT_COL = 'G'; // 経費
+const DETAIL_COL = 'H'; // 詳細 (shared by expense detail and race event name)
+const HEADER_ROW = 2; // row containing "日付" / "作業詳細" / "分" / ...
 const SUMMARY_LABEL = '合計';
 
 // If set, always write to this sheet/tab name regardless of the entry's
@@ -42,8 +50,6 @@ function doPost(e) {
     }
 
     const date = payload.date; // "YYYY-MM-DD"
-    const title = payload.title || '';
-    const minutes = Number(payload.minutes) || 0;
     if (!date) {
       return jsonResponse({ ok: false, error: 'date is required' });
     }
@@ -58,8 +64,25 @@ function doPost(e) {
 
     const dayOfMonth = Number(date.split('-')[2]);
     sheet.getRange(`${DATE_COL}${insertRow}`).setValue(dayOfMonth);
-    sheet.getRange(`${TITLE_COL}${insertRow}`).setValue(title);
-    sheet.getRange(`${MINUTES_COL}${insertRow}`).setValue(minutes);
+
+    const type = payload.type || 'work';
+    if (type === 'expense') {
+      const category = payload.category || '';
+      const detail = payload.detail || '';
+      const amount = Number(payload.amount) || 0;
+      sheet.getRange(`${EXPENSE_AMOUNT_COL}${insertRow}`).setValue(amount);
+      sheet.getRange(`${DETAIL_COL}${insertRow}`).setValue(category ? `[${category}] ${detail}` : detail);
+    } else if (type === 'race') {
+      const eventName = payload.eventName || '';
+      const days = Number(payload.days) || 0;
+      sheet.getRange(`${RACE_DAYS_COL}${insertRow}`).setValue(days);
+      sheet.getRange(`${DETAIL_COL}${insertRow}`).setValue(eventName);
+    } else {
+      const title = payload.title || '';
+      const minutes = Number(payload.minutes) || 0;
+      sheet.getRange(`${TITLE_COL}${insertRow}`).setValue(title);
+      sheet.getRange(`${MINUTES_COL}${insertRow}`).setValue(minutes);
+    }
 
     return jsonResponse({ ok: true, sheet: sheet.getName(), row: insertRow });
   } catch (err) {

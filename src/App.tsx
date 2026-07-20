@@ -3,20 +3,25 @@ import type { User } from 'firebase/auth';
 import Timer from './components/Timer';
 import CalendarView from './components/CalendarView';
 import MonthlyBarChart from './components/MonthlyBarChart';
+import ExpensesView from './components/ExpensesView';
 import SettingsPanel from './components/SettingsPanel';
 import LoginScreen from './components/LoginScreen';
 import FirebaseSetupNotice from './components/FirebaseSetupNotice';
 import ThemeToggle from './components/ThemeToggle';
 import { useAuth } from './hooks/useAuth';
+import { useSettings } from './hooks/useSettings';
 import { useTimeEntries } from './hooks/useTimeEntries';
+import { useExpenseEntries } from './hooks/useExpenseEntries';
+import { useRaceWorkEntries } from './hooks/useRaceWorkEntries';
 import { useTheme, type ThemeMode } from './hooks/useTheme';
 
-type Tab = 'timer' | 'calendar' | 'chart' | 'settings';
+type Tab = 'timer' | 'calendar' | 'chart' | 'expenses' | 'settings';
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'timer', label: 'タイマー' },
   { id: 'calendar', label: 'カレンダー' },
   { id: 'chart', label: 'グラフ' },
+  { id: 'expenses', label: '経費' },
   { id: 'settings', label: '設定' },
 ];
 
@@ -29,6 +34,7 @@ interface AuthedAppProps {
 
 function AuthedApp({ user, onSignOut, themeMode, onThemeChange }: AuthedAppProps) {
   const [tab, setTab] = useState<Tab>('timer');
+  const { settings, setSettings } = useSettings(user.uid);
   const {
     entries,
     entriesByDate,
@@ -41,9 +47,19 @@ function AuthedApp({ user, onSignOut, themeMode, onThemeChange }: AuthedAppProps
     updateEntry,
     retrySync,
     syncStatus,
-    settings,
-    setSettings,
-  } = useTimeEntries(user);
+  } = useTimeEntries(user, settings);
+  const {
+    entriesByMonth: expensesByMonth,
+    addExpense,
+    updateExpense,
+    deleteExpense,
+  } = useExpenseEntries(user, settings);
+  const {
+    entriesByMonth: raceWorkByMonth,
+    addRaceWork,
+    updateRaceWork,
+    deleteRaceWork,
+  } = useRaceWorkEntries(user, settings);
 
   const unsyncedEntries = entries.filter((e) => !e.synced);
 
@@ -90,6 +106,18 @@ function AuthedApp({ user, onSignOut, themeMode, onThemeChange }: AuthedAppProps
             />
           )}
           {tab === 'chart' && <MonthlyBarChart entries={entries} />}
+          {tab === 'expenses' && (
+            <ExpensesView
+              expensesByMonth={expensesByMonth}
+              onAddExpense={addExpense}
+              onUpdateExpense={updateExpense}
+              onDeleteExpense={deleteExpense}
+              raceWorkByMonth={raceWorkByMonth}
+              onAddRaceWork={addRaceWork}
+              onUpdateRaceWork={updateRaceWork}
+              onDeleteRaceWork={deleteRaceWork}
+            />
+          )}
           {tab === 'settings' && (
             <SettingsPanel
               settings={settings}

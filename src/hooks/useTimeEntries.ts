@@ -1,31 +1,19 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { User } from 'firebase/auth';
-import {
-  addDoc,
-  collection,
-  deleteDoc,
-  doc,
-  onSnapshot,
-  orderBy,
-  query,
-  setDoc,
-  updateDoc,
-} from 'firebase/firestore';
-import type { TimeEntry } from '../types/entry';
-import { defaultSettings, type Settings } from '../types/entry';
+import { addDoc, collection, deleteDoc, doc, onSnapshot, orderBy, query, updateDoc } from 'firebase/firestore';
+import type { Settings, TimeEntry } from '../types/entry';
 import { db } from '../lib/firebase';
 import { loadRunningTimer, saveRunningTimer } from '../lib/storage';
 import { syncEntryToSheets } from '../lib/sheetsSync';
 import { toDateKey } from '../lib/dateUtils';
 
-export function useTimeEntries(user: User) {
+export function useTimeEntries(user: User, settings: Settings) {
   const uid = user.uid;
   const [entries, setEntries] = useState<TimeEntry[]>([]);
   const [entriesLoaded, setEntriesLoaded] = useState(false);
   const [runningStartedAt, setRunningStartedAt] = useState<string | null>(
     () => loadRunningTimer(uid)?.startedAt ?? null,
   );
-  const [settings, setSettingsState] = useState<Settings>(defaultSettings);
   const [syncStatus, setSyncStatus] = useState<Record<string, 'pending' | 'ok' | 'error'>>({});
 
   useEffect(() => {
@@ -38,26 +26,9 @@ export function useTimeEntries(user: User) {
     return unsubscribe;
   }, [uid]);
 
-  useEffect(() => {
-    if (!db) return;
-    const settingsRef = doc(db, 'users', uid, 'settings', 'main');
-    const unsubscribe = onSnapshot(settingsRef, (snap) => {
-      setSettingsState(snap.exists() ? { ...defaultSettings, ...(snap.data() as Partial<Settings>) } : defaultSettings);
-    });
-    return unsubscribe;
-  }, [uid]);
-
   useEffect(
     () => saveRunningTimer(uid, runningStartedAt ? { startedAt: runningStartedAt } : null),
     [uid, runningStartedAt],
-  );
-
-  const setSettings = useCallback(
-    async (next: Settings) => {
-      if (!db) return;
-      await setDoc(doc(db, 'users', uid, 'settings', 'main'), next);
-    },
-    [uid],
   );
 
   const isRunning = runningStartedAt !== null;
@@ -155,7 +126,5 @@ export function useTimeEntries(user: User) {
     updateEntry,
     retrySync,
     syncStatus,
-    settings,
-    setSettings,
   };
 }
