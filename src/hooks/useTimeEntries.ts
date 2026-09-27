@@ -1,19 +1,18 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { User } from 'firebase/auth';
 import { addDoc, collection, deleteDoc, doc, onSnapshot, orderBy, query, updateDoc } from 'firebase/firestore';
-import type { Settings, TimeEntry } from '../types/entry';
+import type { RunningTimer, Settings, TimeEntry } from '../types/entry';
 import { db } from '../lib/firebase';
 import { loadRunningTimer, saveRunningTimer } from '../lib/storage';
 import { syncEntryToSheets } from '../lib/sheetsSync';
+import { getPausedMs, getWorkedMs } from '../lib/runningTimer';
 import { toDateKey } from '../lib/dateUtils';
 
 export function useTimeEntries(user: User, settings: Settings) {
   const uid = user.uid;
   const [entries, setEntries] = useState<TimeEntry[]>([]);
   const [entriesLoaded, setEntriesLoaded] = useState(false);
-  const [runningStartedAt, setRunningStartedAt] = useState<string | null>(
-    () => loadRunningTimer(uid)?.startedAt ?? null,
-  );
+  const [runningTimer, setRunningTimer] = useState<RunningTimer | null>(() => loadRunningTimer(uid));
   const [syncStatus, setSyncStatus] = useState<Record<string, 'pending' | 'ok' | 'error'>>({});
 
   useEffect(() => {
@@ -26,38 +25,49 @@ export function useTimeEntries(user: User, settings: Settings) {
     return unsubscribe;
   }, [uid]);
 
-  useEffect(
-    () => saveRunningTimer(uid, runningStartedAt ? { startedAt: runningStartedAt } : null),
-    [uid, runningStartedAt],
-  );
+  useEffect(() => saveRunningTimer(uid, runningTimer), [uid, runningTimer]);
 
-  const isRunning = runningStartedAt !== null;
+  const isRunning = runningTimer !== null;
+  const isPaused = !!runningTimer?.pausedAt;
 
   const start = useCallback(() => {
     if (isRunning) return;
-    setRunningStartedAt(new Date().toISOString());
+    setRunningTimer({ startedAt: new Date().toISOString(), pausedAt: null, pausedMs: 0 });
   }, [isRunning]);
 
+  const pause = useCallback(() => {
+    setRunningTimer((prev) => (prev && !prev.pausedAt ? { ...prev, pausedAt: new Date().toISOString() } : prev));
+  }, []);
+
+  const resume = useCallback(() => {
+    setRunningTimer((prev) =>
+      prev?.pausedAt ? { ...prev, pausedAt: null, pausedMs: getPausedMs(prev, Date.now()) } : prev,
+    );
+  }, []);
+
   const cancel = useCallback(() => {
-    setRunningStartedAt(null);
+    setRunningTimer(null);
   }, []);
 
   const finish = useCallback(
     async (title: string) => {
-      if (!runningStartedAt || !db) return;
-      const start = new Date(runningStartedAt);
-      const end = new Date();
-      const minutes = Math.max(1, Math.round((end.getTime() - start.getTime()) / 60000));
+      if (!runningTimer || !db) return;
+      const start = new Date(runningTimer.startedAt);
+      // If finished while paused, the work actually ended when the pause began.
+      const end = runningTimer.pausedAt ? new Date(runningTimer.pausedAt) : new Date();
+      const minutes = Math.max(1, Math.round(getWorkedMs(runningTimer, end.getTime()) / 60000));
+      const pausedMinutes = Math.round(getPausedMs(runningTimer, end.getTime()) / 60000);
       const entryData: Omit<TimeEntry, 'id'> = {
         date: toDateKey(start),
         startedAt: start.toISOString(),
         endedAt: end.toISOString(),
         minutes,
+        ...(pausedMinutes > 0 && { pausedMinutes }),
         title: title.trim() || '(無題)',
         synced: false,
       };
       const docRef = await addDoc(collection(db, 'users', uid, 'entries'), entryData);
-      setRunningStartedAt(null);
+      setRunningTimer(null);
 
       if (settings.autoSync && settings.sheetsWebAppUrl) {
         const entry: TimeEntry = { id: docRef.id, ...entryData };
@@ -69,7 +79,7 @@ export function useTimeEntries(user: User, settings: Settings) {
         }
       }
     },
-    [runningStartedAt, settings, uid],
+    [runningTimer, settings, uid],
   );
 
   const retrySync = useCallback(
@@ -118,8 +128,11 @@ export function useTimeEntries(user: User, settings: Settings) {
     entriesLoaded,
     entriesByDate,
     isRunning,
-    runningStartedAt,
+    isPaused,
+    runningTimer,
     start,
+    pause,
+    resume,
     cancel,
     finish,
     deleteEntry,

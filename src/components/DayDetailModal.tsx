@@ -88,6 +88,7 @@ export default function DayDetailModal({ dateKey, entries, onClose, onDelete, on
                     <p className="text-xs text-slate-500 dark:text-slate-400">
                       {format(parseISO(entry.startedAt), 'HH:mm')}〜{format(parseISO(entry.endedAt), 'HH:mm')} ・{' '}
                       {formatMinutes(entry.minutes)}
+                      {!!entry.pausedMinutes && <span className="ml-1">（一時停止 {formatMinutes(entry.pausedMinutes)}）</span>}
                       {entry.synced && <span className="ml-1 text-emerald-500 dark:text-emerald-400">・同期済</span>}
                     </p>
                   </div>

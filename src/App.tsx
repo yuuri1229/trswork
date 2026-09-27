@@ -39,8 +39,11 @@ function AuthedApp({ user, onSignOut, themeMode, onThemeChange }: AuthedAppProps
     entries,
     entriesByDate,
     isRunning,
-    runningStartedAt,
+    isPaused,
+    runningTimer,
     start,
+    pause,
+    resume,
     cancel,
     finish,
     deleteEntry,
@@ -71,9 +74,12 @@ function AuthedApp({ user, onSignOut, themeMode, onThemeChange }: AuthedAppProps
         </div>
         <div className="text-center">
           <h1 className="text-xl font-bold text-slate-800 sm:text-2xl dark:text-slate-100">作業時間トラッカー</h1>
-          {isRunning && (
-            <p className="mt-1 text-xs font-medium text-emerald-600 dark:text-emerald-400">● 作業を記録中です</p>
-          )}
+          {isRunning &&
+            (isPaused ? (
+              <p className="mt-1 text-xs font-medium text-amber-600 dark:text-amber-400">❚❚ 一時停止中です</p>
+            ) : (
+              <p className="mt-1 text-xs font-medium text-emerald-600 dark:text-emerald-400">● 作業を記録中です</p>
+            ))}
         </div>
         <div className="flex w-20 justify-end">
           <button
@@ -91,9 +97,10 @@ function AuthedApp({ user, onSignOut, themeMode, onThemeChange }: AuthedAppProps
         <div className="mx-auto mt-4 flex max-w-md flex-col gap-4">
           {tab === 'timer' && (
             <Timer
-              isRunning={isRunning}
-              runningStartedAt={runningStartedAt}
+              runningTimer={runningTimer}
               onStart={start}
+              onPause={pause}
+              onResume={resume}
               onFinish={finish}
               onCancel={cancel}
             />

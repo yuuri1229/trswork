@@ -6,8 +6,10 @@ export interface TimeEntry {
   startedAt: string;
   /** ISO timestamp of when work ended. */
   endedAt: string;
-  /** Duration in whole minutes. */
+  /** Duration in whole minutes (paused time excluded). */
   minutes: number;
+  /** Total time spent paused during this entry, in whole minutes. */
+  pausedMinutes?: number;
   /** Work content entered by the user when stopping the timer. */
   title: string;
   /** Whether this entry has been synced to Google Sheets. */
@@ -16,6 +18,10 @@ export interface TimeEntry {
 
 export interface RunningTimer {
   startedAt: string;
+  /** ISO timestamp of when the current pause began; null/absent while running. */
+  pausedAt?: string | null;
+  /** Total milliseconds spent in pauses that have already been resumed. */
+  pausedMs?: number;
 }
 
 export interface Settings {
