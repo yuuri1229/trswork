@@ -47,7 +47,11 @@ export default function DayDetailModal({ dateKey, entries, onClose, onDelete, on
             </h2>
             <p className="text-sm text-slate-500 dark:text-slate-400">合計 {formatMinutes(total)}</p>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300">
+          <button
+            onClick={onClose}
+            aria-label="閉じる"
+            className="-m-2 rounded-md px-4 py-3 text-slate-400 hover:text-slate-600 active:bg-slate-100 dark:text-slate-500 dark:hover:text-slate-300 dark:active:bg-slate-700"
+          >
             ✕
           </button>
         </div>
@@ -71,11 +75,11 @@ export default function DayDetailModal({ dateKey, entries, onClose, onDelete, on
                       className="w-20 rounded border border-slate-300 px-2 py-1 text-sm dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
                     />
                     <span className="text-xs text-slate-500 dark:text-slate-400">分</span>
-                    <div className="ml-auto flex gap-2">
-                      <button onClick={() => setEditingId(null)} className="text-xs text-slate-400 dark:text-slate-500">
+                    <div className="-mr-2 -my-2 ml-auto flex">
+                      <button onClick={() => setEditingId(null)} className="rounded-md px-3.5 py-3.5 text-xs text-slate-400 active:bg-slate-100 dark:text-slate-500 dark:active:bg-slate-700">
                         キャンセル
                       </button>
-                      <button onClick={saveEdit} className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                      <button onClick={saveEdit} className="rounded-md px-3.5 py-3.5 text-xs font-semibold text-emerald-600 active:bg-emerald-50 dark:text-emerald-400 dark:active:bg-slate-700">
                         保存
                       </button>
                     </div>
@@ -91,11 +95,11 @@ export default function DayDetailModal({ dateKey, entries, onClose, onDelete, on
                       {!!entry.pausedMinutes && <span className="ml-1">（一時停止 {formatMinutes(entry.pausedMinutes)}）</span>}
                     </p>
                   </div>
-                  <div className="flex shrink-0 gap-2 text-xs">
-                    <button onClick={() => startEdit(entry)} className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300">
+                  <div className="-mr-2 -my-2 flex shrink-0 text-xs">
+                    <button onClick={() => startEdit(entry)} className="rounded-md px-3.5 py-3.5 text-slate-400 hover:text-slate-600 active:bg-slate-100 dark:text-slate-500 dark:hover:text-slate-300 dark:active:bg-slate-700">
                       編集
                     </button>
-                    <button onClick={() => onDelete(entry.id)} className="text-rose-400 hover:text-rose-600 dark:text-rose-400 dark:hover:text-rose-300">
+                    <button onClick={() => onDelete(entry.id)} className="rounded-md px-3.5 py-3.5 text-rose-400 hover:text-rose-600 active:bg-rose-50 dark:text-rose-400 dark:hover:text-rose-300 dark:active:bg-slate-700">
                       削除
                     </button>
                   </div>
