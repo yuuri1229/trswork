@@ -8,22 +8,18 @@ import ExpensesView from './components/ExpensesView';
 import SettingsPanel from './components/SettingsPanel';
 import LoginScreen from './components/LoginScreen';
 import FirebaseSetupNotice from './components/FirebaseSetupNotice';
-import ThemeToggle from './components/ThemeToggle';
 import { useAuth } from './hooks/useAuth';
 import { useSettings } from './hooks/useSettings';
 import { useTimeEntries } from './hooks/useTimeEntries';
 import { useExpenseEntries } from './hooks/useExpenseEntries';
 import { useRaceWorkEntries } from './hooks/useRaceWorkEntries';
-import { useTheme, type ThemeMode } from './hooks/useTheme';
 
 interface AuthedAppProps {
   user: User;
   onSignOut: () => void;
-  themeMode: ThemeMode;
-  onThemeChange: (mode: ThemeMode) => void;
 }
 
-function AuthedApp({ user, onSignOut, themeMode, onThemeChange }: AuthedAppProps) {
+function AuthedApp({ user, onSignOut }: AuthedAppProps) {
   const [tab, setTab] = useState<Tab>('timer');
   const { settings, setSettings } = useSettings(user.uid);
   const {
@@ -54,13 +50,11 @@ function AuthedApp({ user, onSignOut, themeMode, onThemeChange }: AuthedAppProps
   } = useRaceWorkEntries(user);
 
   return (
-    <div className="mx-auto flex min-h-svh max-w-2xl flex-col bg-slate-50 dark:bg-slate-900">
+    <div className="mx-auto flex min-h-svh max-w-2xl flex-col bg-slate-50 dark:bg-black">
       <header className="flex items-start justify-between px-4 pt-6 pb-2 sm:pt-10">
-        <div className="flex w-20 justify-start">
-          <ThemeToggle mode={themeMode} onChange={onThemeChange} />
-        </div>
+        <div className="w-20" />
         <div className="text-center">
-          <h1 className="text-xl font-bold text-slate-800 sm:text-2xl dark:text-slate-100">作業時間トラッカー</h1>
+          <h1 className="text-xl font-bold text-slate-800 sm:text-2xl dark:text-neutral-100">作業時間トラッカー</h1>
           {isRunning &&
             (isPaused ? (
               <p className="mt-1 text-xs font-medium text-amber-600 dark:text-amber-400">❚❚ 一時停止中です</p>
@@ -71,14 +65,14 @@ function AuthedApp({ user, onSignOut, themeMode, onThemeChange }: AuthedAppProps
         <div className="flex w-20 justify-end">
           <button
             onClick={onSignOut}
-            className="-mr-1 px-1 py-2 text-xs font-medium text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300"
+            className="-mr-1 px-1 py-2 text-xs font-medium text-slate-400 hover:text-slate-600 dark:text-neutral-500 dark:hover:text-neutral-300"
             title={user.email ?? ''}
           >
             ログアウト
           </button>
         </div>
       </header>
-      <p className="-mt-1 text-center text-xs text-slate-400 dark:text-slate-500">{user.displayName ?? user.email}</p>
+      <p className="-mt-1 text-center text-xs text-slate-400 dark:text-neutral-500">{user.displayName ?? user.email}</p>
 
       <main className="flex-1 px-4 pb-24">
         <div className="mx-auto mt-4 flex max-w-md flex-col gap-4">
@@ -125,22 +119,12 @@ function AuthedApp({ user, onSignOut, themeMode, onThemeChange }: AuthedAppProps
 
 function App() {
   const { user, loading, signIn, signOut, firebaseConfigured, translateAuthError } = useAuth();
-  const { mode, setMode } = useTheme();
 
-  if (!firebaseConfigured) return <FirebaseSetupNotice themeMode={mode} onThemeChange={setMode} />;
+  if (!firebaseConfigured) return <FirebaseSetupNotice />;
   if (loading) return null;
-  if (!user) {
-    return (
-      <LoginScreen
-        onSignIn={signIn}
-        translateAuthError={translateAuthError}
-        themeMode={mode}
-        onThemeChange={setMode}
-      />
-    );
-  }
+  if (!user) return <LoginScreen onSignIn={signIn} translateAuthError={translateAuthError} />;
 
-  return <AuthedApp user={user} onSignOut={signOut} themeMode={mode} onThemeChange={setMode} />;
+  return <AuthedApp user={user} onSignOut={signOut} />;
 }
 
 export default App;

@@ -1,13 +1,7 @@
 @import 'tailwindcss';
 
-@custom-variant dark (&:where(.dark, .dark *));
-
 :root {
-  color-scheme: light;
-}
-
-:root.dark {
-  color-scheme: dark;
+  color-scheme: light dark;
 }
 
 body {
@@ -39,8 +33,10 @@ label {
   }
 }
 
-:root.dark body {
-  background-color: #0f172a;
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: #000;
+  }
 }
 
 #root {

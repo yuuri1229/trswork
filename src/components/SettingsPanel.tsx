@@ -23,16 +23,16 @@ export default function SettingsPanel({ settings, onChange }: SettingsPanelProps
   };
 
   return (
-    <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200 sm:p-6 dark:bg-slate-800 dark:ring-slate-700">
-      <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">設定</h2>
+    <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200 sm:p-6 dark:bg-neutral-900 dark:ring-neutral-800">
+      <h2 className="text-lg font-semibold text-slate-800 dark:text-neutral-100">設定</h2>
       <form onSubmit={handleSave} className="mt-4 flex flex-col gap-4">
         <label className="flex flex-col gap-1 text-sm">
-          <span className="font-medium text-slate-600 dark:text-slate-300">氏名</span>
+          <span className="font-medium text-slate-600 dark:text-neutral-300">氏名</span>
           <input
             value={draft.workerName}
             onChange={(e) => setDraft({ ...draft, workerName: e.target.value })}
             placeholder="山田 太郎"
-            className="rounded-lg border border-slate-300 px-3 py-2 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:placeholder-slate-500 dark:focus:ring-emerald-900"
+            className="rounded-lg border border-slate-300 px-3 py-2 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-neutral-700 dark:bg-black dark:text-neutral-100 dark:placeholder-neutral-500 dark:focus:ring-emerald-900"
           />
         </label>
 

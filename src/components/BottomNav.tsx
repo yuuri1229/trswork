@@ -23,7 +23,7 @@ export default function BottomNav({ tab, onChange }: BottomNavProps) {
     // 0.5rem floor leaves some breathing room on devices without one.
     <nav
       aria-label="メインメニュー"
-      className="sticky bottom-0 select-none border-t border-slate-200 bg-white/95 pb-[max(env(safe-area-inset-bottom),0.5rem)] backdrop-blur dark:border-slate-700 dark:bg-slate-900/95"
+      className="sticky bottom-0 select-none border-t border-slate-200 bg-white/95 pb-[max(env(safe-area-inset-bottom),0.5rem)] backdrop-blur dark:border-neutral-800 dark:bg-black/95"
     >
       <div className="mx-auto flex max-w-md">
         {TABS.map(({ id, label, Icon }) => (
@@ -32,10 +32,10 @@ export default function BottomNav({ tab, onChange }: BottomNavProps) {
             type="button"
             onClick={() => onChange(id)}
             aria-current={tab === id ? 'page' : undefined}
-            className={`flex min-h-14 flex-1 flex-col items-center justify-center gap-0.5 px-1 pt-1 transition active:bg-slate-100 dark:active:bg-slate-800 ${
+            className={`flex min-h-14 flex-1 flex-col items-center justify-center gap-0.5 px-1 pt-1 transition active:bg-slate-100 dark:active:bg-neutral-900 ${
               tab === id
                 ? 'text-emerald-600 dark:text-emerald-400'
-                : 'text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300'
+                : 'text-slate-400 hover:text-slate-600 dark:text-neutral-500 dark:hover:text-neutral-300'
             }`}
           >
             <Icon size={24} aria-hidden />

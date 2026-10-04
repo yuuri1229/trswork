@@ -37,20 +37,20 @@ export default function DayDetailModal({ dateKey, entries, onClose, onDelete, on
       onClick={onClose}
     >
       <div
-        className="max-h-[80vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-6 shadow-xl dark:bg-slate-800"
+        className="max-h-[80vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-6 shadow-xl dark:bg-neutral-900"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between">
           <div>
-            <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
+            <h2 className="text-lg font-semibold text-slate-800 dark:text-neutral-100">
               {format(parseISO(dateKey), 'yyyy年M月d日 (E)', { locale: ja })}
             </h2>
-            <p className="text-sm text-slate-500 dark:text-slate-400">合計 {formatMinutes(total)}</p>
+            <p className="text-sm text-slate-500 dark:text-neutral-400">合計 {formatMinutes(total)}</p>
           </div>
           <button
             onClick={onClose}
             aria-label="閉じる"
-            className="-m-2 rounded-md px-4 py-3 text-slate-400 hover:text-slate-600 active:bg-slate-100 dark:text-slate-500 dark:hover:text-slate-300 dark:active:bg-slate-700"
+            className="-m-2 rounded-md px-4 py-3 text-slate-400 hover:text-slate-600 active:bg-slate-100 dark:text-neutral-500 dark:hover:text-neutral-300 dark:active:bg-neutral-800"
           >
             ✕
           </button>
@@ -58,13 +58,13 @@ export default function DayDetailModal({ dateKey, entries, onClose, onDelete, on
 
         <ul className="mt-4 flex flex-col gap-2">
           {entries.map((entry) => (
-            <li key={entry.id} className="rounded-lg border border-slate-200 p-3 dark:border-slate-700">
+            <li key={entry.id} className="rounded-lg border border-slate-200 p-3 dark:border-neutral-800">
               {editingId === entry.id ? (
                 <div className="flex flex-col gap-2">
                   <input
                     value={draftTitle}
                     onChange={(e) => setDraftTitle(e.target.value)}
-                    className="rounded border border-slate-300 px-2 py-1 text-sm dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
+                    className="rounded border border-slate-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-black dark:text-neutral-100"
                   />
                   <div className="flex items-center gap-2">
                     <input
@@ -72,14 +72,14 @@ export default function DayDetailModal({ dateKey, entries, onClose, onDelete, on
                       min={1}
                       value={draftMinutes}
                       onChange={(e) => setDraftMinutes(Number(e.target.value))}
-                      className="w-20 rounded border border-slate-300 px-2 py-1 text-sm dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
+                      className="w-20 rounded border border-slate-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-black dark:text-neutral-100"
                     />
-                    <span className="text-xs text-slate-500 dark:text-slate-400">分</span>
+                    <span className="text-xs text-slate-500 dark:text-neutral-400">分</span>
                     <div className="-mr-2 -my-2 ml-auto flex">
-                      <button onClick={() => setEditingId(null)} className="rounded-md px-3.5 py-3.5 text-xs text-slate-400 active:bg-slate-100 dark:text-slate-500 dark:active:bg-slate-700">
+                      <button onClick={() => setEditingId(null)} className="rounded-md px-3.5 py-3.5 text-xs text-slate-400 active:bg-slate-100 dark:text-neutral-500 dark:active:bg-neutral-800">
                         キャンセル
                       </button>
-                      <button onClick={saveEdit} className="rounded-md px-3.5 py-3.5 text-xs font-semibold text-emerald-600 active:bg-emerald-50 dark:text-emerald-400 dark:active:bg-slate-700">
+                      <button onClick={saveEdit} className="rounded-md px-3.5 py-3.5 text-xs font-semibold text-emerald-600 active:bg-emerald-50 dark:text-emerald-400 dark:active:bg-neutral-800">
                         保存
                       </button>
                     </div>
@@ -88,18 +88,18 @@ export default function DayDetailModal({ dateKey, entries, onClose, onDelete, on
               ) : (
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <p className="text-sm font-medium text-slate-800 dark:text-slate-100">{entry.title}</p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                    <p className="text-sm font-medium text-slate-800 dark:text-neutral-100">{entry.title}</p>
+                    <p className="text-xs text-slate-500 dark:text-neutral-400">
                       {format(parseISO(entry.startedAt), 'HH:mm')}〜{format(parseISO(entry.endedAt), 'HH:mm')} ・{' '}
                       {formatMinutes(entry.minutes)}
                       {!!entry.pausedMinutes && <span className="ml-1">（一時停止 {formatMinutes(entry.pausedMinutes)}）</span>}
                     </p>
                   </div>
                   <div className="-mr-2 -my-2 flex shrink-0 text-xs">
-                    <button onClick={() => startEdit(entry)} className="rounded-md px-3.5 py-3.5 text-slate-400 hover:text-slate-600 active:bg-slate-100 dark:text-slate-500 dark:hover:text-slate-300 dark:active:bg-slate-700">
+                    <button onClick={() => startEdit(entry)} className="rounded-md px-3.5 py-3.5 text-slate-400 hover:text-slate-600 active:bg-slate-100 dark:text-neutral-500 dark:hover:text-neutral-300 dark:active:bg-neutral-800">
                       編集
                     </button>
-                    <button onClick={() => onDelete(entry.id)} className="rounded-md px-3.5 py-3.5 text-rose-400 hover:text-rose-600 active:bg-rose-50 dark:text-rose-400 dark:hover:text-rose-300 dark:active:bg-slate-700">
+                    <button onClick={() => onDelete(entry.id)} className="rounded-md px-3.5 py-3.5 text-rose-400 hover:text-rose-600 active:bg-rose-50 dark:text-rose-400 dark:hover:text-rose-300 dark:active:bg-neutral-800">
                       削除
                     </button>
                   </div>
