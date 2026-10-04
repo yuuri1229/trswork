@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { format, parseISO, subMonths } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import type { TimeEntry } from '../types/entry';
-import { formatHoursDecimal } from '../lib/dateUtils';
+import { formatHoursDecimal, formatMinutes } from '../lib/dateUtils';
 
 interface MonthlyBarChartProps {
   entries: TimeEntry[];
@@ -29,6 +29,9 @@ export default function MonthlyBarChart({ entries }: MonthlyBarChartProps) {
     return months.map((m) => ({ month: m, minutes: totals.get(m) ?? 0 }));
   }, [entries]);
 
+  // 累計: every entry stored in the cloud, not just the 12 months shown.
+  const cumulativeMinutes = useMemo(() => entries.reduce((sum, e) => sum + e.minutes, 0), [entries]);
+
   const maxMinutes = Math.max(...data.map((d) => d.minutes), 60);
   const chartHeight = 220;
   const barGap = 8;
@@ -44,6 +47,9 @@ export default function MonthlyBarChart({ entries }: MonthlyBarChartProps) {
           {showTable ? 'グラフで表示' : '表で表示'}
         </button>
       </div>
+      <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">
+        累計 {formatMinutes(cumulativeMinutes)}（{formatHoursDecimal(cumulativeMinutes)} 時間・{entries.length}件）
+      </p>
 
       {showTable ? (
         <table className="mt-4 w-full text-sm">
@@ -65,6 +71,14 @@ export default function MonthlyBarChart({ entries }: MonthlyBarChartProps) {
               </tr>
             ))}
           </tbody>
+          <tfoot>
+            <tr className="font-semibold">
+              <td className="py-1.5 text-slate-800 dark:text-slate-100">累計（全期間）</td>
+              <td className="py-1.5 tabular-nums text-slate-800 dark:text-slate-100">
+                {formatHoursDecimal(cumulativeMinutes)} 時間
+              </td>
+            </tr>
+          </tfoot>
         </table>
       ) : (
         <div className="mt-4">

@@ -1,19 +1,17 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { User } from 'firebase/auth';
 import { addDoc, collection, deleteDoc, doc, onSnapshot, orderBy, query, updateDoc } from 'firebase/firestore';
-import type { RunningTimer, Settings, TimeEntry } from '../types/entry';
+import type { RunningTimer, TimeEntry } from '../types/entry';
 import { db } from '../lib/firebase';
 import { loadRunningTimer, saveRunningTimer } from '../lib/storage';
-import { syncEntryToSheets } from '../lib/sheetsSync';
 import { getPausedMs, getWorkedMs } from '../lib/runningTimer';
 import { toDateKey } from '../lib/dateUtils';
 
-export function useTimeEntries(user: User, settings: Settings) {
+export function useTimeEntries(user: User) {
   const uid = user.uid;
   const [entries, setEntries] = useState<TimeEntry[]>([]);
   const [entriesLoaded, setEntriesLoaded] = useState(false);
   const [runningTimer, setRunningTimer] = useState<RunningTimer | null>(() => loadRunningTimer(uid));
-  const [syncStatus, setSyncStatus] = useState<Record<string, 'pending' | 'ok' | 'error'>>({});
 
   useEffect(() => {
     if (!db) return;
@@ -64,37 +62,11 @@ export function useTimeEntries(user: User, settings: Settings) {
         minutes,
         ...(pausedMinutes > 0 && { pausedMinutes }),
         title: title.trim() || '(無題)',
-        synced: false,
       };
-      const docRef = await addDoc(collection(db, 'users', uid, 'entries'), entryData);
+      await addDoc(collection(db, 'users', uid, 'entries'), entryData);
       setRunningTimer(null);
-
-      if (settings.autoSync && settings.sheetsWebAppUrl) {
-        const entry: TimeEntry = { id: docRef.id, ...entryData };
-        setSyncStatus((prev) => ({ ...prev, [entry.id]: 'pending' }));
-        const result = await syncEntryToSheets(entry, settings);
-        setSyncStatus((prev) => ({ ...prev, [entry.id]: result.ok ? 'ok' : 'error' }));
-        if (result.ok) {
-          await updateDoc(doc(db, 'users', uid, 'entries', entry.id), { synced: true });
-        }
-      }
     },
-    [runningTimer, settings, uid],
-  );
-
-  const retrySync = useCallback(
-    async (id: string) => {
-      if (!db) return;
-      const entry = entries.find((e) => e.id === id);
-      if (!entry) return;
-      setSyncStatus((prev) => ({ ...prev, [id]: 'pending' }));
-      const result = await syncEntryToSheets(entry, settings);
-      setSyncStatus((prev) => ({ ...prev, [id]: result.ok ? 'ok' : 'error' }));
-      if (result.ok) {
-        await updateDoc(doc(db, 'users', uid, 'entries', id), { synced: true });
-      }
-    },
-    [entries, settings, uid],
+    [runningTimer, uid],
   );
 
   const deleteEntry = useCallback(
@@ -137,7 +109,5 @@ export function useTimeEntries(user: User, settings: Settings) {
     finish,
     deleteEntry,
     updateEntry,
-    retrySync,
-    syncStatus,
   };
 }

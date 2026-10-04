@@ -17,6 +17,14 @@ interface ExpensesViewProps {
   onDeleteRaceWork: (id: string) => void;
 }
 
+function sumAmounts(byMonth: Map<string, { amount: number }[]>): number {
+  let total = 0;
+  for (const list of byMonth.values()) {
+    for (const entry of list) total += entry.amount;
+  }
+  return total;
+}
+
 export default function ExpensesView({
   expensesByMonth,
   onAddExpense,
@@ -45,6 +53,10 @@ export default function ExpensesView({
 
   const expenseTotal = expenses.reduce((sum, e) => sum + e.amount, 0);
   const raceWorkTotal = raceWork.reduce((sum, e) => sum + e.amount, 0);
+
+  // 累計: every month stored in the cloud, independent of the month being viewed.
+  const cumulativeExpense = useMemo(() => sumAmounts(expensesByMonth), [expensesByMonth]);
+  const cumulativeRaceWork = useMemo(() => sumAmounts(raceWorkByMonth), [raceWorkByMonth]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -98,7 +110,6 @@ export default function ExpensesView({
                   <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                     {format(parseISO(entry.date), 'M月d日', { locale: ja })}
                     {entry.detail && ` ・ ${entry.detail}`}
-                    {entry.synced && <span className="ml-1 text-emerald-500 dark:text-emerald-400">・同期済</span>}
                   </p>
                 </div>
                 <div className="flex shrink-0 gap-2 text-xs">
@@ -149,7 +160,6 @@ export default function ExpensesView({
                   <p className="text-sm font-medium text-slate-800 dark:text-slate-100">{entry.eventName}</p>
                   <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                     {format(parseISO(entry.date), 'M月d日', { locale: ja })} ・ {entry.days}日 ・ {formatYen(entry.amount)}
-                    {entry.synced && <span className="ml-1 text-emerald-500 dark:text-emerald-400">・同期済</span>}
                   </p>
                 </div>
                 <div className="flex shrink-0 gap-2 text-xs">
@@ -174,6 +184,24 @@ export default function ExpensesView({
         <p className="mt-4 text-right text-sm font-semibold text-slate-700 dark:text-slate-200">
           レース作業合計: {formatYen(raceWorkTotal)}
         </p>
+      </div>
+
+      <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200 sm:p-6 dark:bg-slate-800 dark:ring-slate-700">
+        <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">累計（全期間）</h2>
+        <dl className="mt-3 flex flex-col gap-1.5 text-sm text-slate-600 dark:text-slate-300">
+          <div className="flex justify-between">
+            <dt>経費</dt>
+            <dd className="tabular-nums">{formatYen(cumulativeExpense)}</dd>
+          </div>
+          <div className="flex justify-between">
+            <dt>レース作業</dt>
+            <dd className="tabular-nums">{formatYen(cumulativeRaceWork)}</dd>
+          </div>
+          <div className="flex justify-between border-t border-slate-100 pt-1.5 font-semibold text-slate-800 dark:border-slate-700 dark:text-slate-100">
+            <dt>合計</dt>
+            <dd className="tabular-nums">{formatYen(cumulativeExpense + cumulativeRaceWork)}</dd>
+          </div>
+        </dl>
       </div>
 
       {showExpenseForm && (

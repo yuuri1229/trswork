@@ -12,8 +12,6 @@ export interface TimeEntry {
   pausedMinutes?: number;
   /** Work content entered by the user when stopping the timer. */
   title: string;
-  /** Whether this entry has been synced to Google Sheets. */
-  synced: boolean;
 }
 
 export interface RunningTimer {
@@ -26,16 +24,10 @@ export interface RunningTimer {
 
 export interface Settings {
   workerName: string;
-  sheetsWebAppUrl: string;
-  sheetsSharedSecret: string;
-  autoSync: boolean;
 }
 
 export const defaultSettings: Settings = {
   workerName: '',
-  sheetsWebAppUrl: '',
-  sheetsSharedSecret: '',
-  autoSync: false,
 };
 
 export interface ExpenseEntry {
@@ -48,8 +40,6 @@ export interface ExpenseEntry {
   detail: string;
   /** 料金 (amount in yen). */
   amount: number;
-  /** Whether this entry has been synced to Google Sheets. */
-  synced: boolean;
 }
 
 export const EXPENSE_CATEGORIES = [
@@ -75,8 +65,6 @@ export interface RaceWorkEntry {
   eventName: string;
   /** 日数 (number of days worked). */
   days: number;
-  /** days * RACE_WORK_DAILY_RATE, stored for easy display/sync. */
+  /** days * RACE_WORK_DAILY_RATE, stored for easy display. */
   amount: number;
-  /** Whether this entry has been synced to Google Sheets. */
-  synced: boolean;
 }
