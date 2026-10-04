@@ -124,7 +124,7 @@ function AuthedApp({ user, onSignOut, themeMode, onThemeChange }: AuthedAppProps
 }
 
 function App() {
-  const { user, loading, signIn, signUp, signOut, firebaseConfigured, translateAuthError } = useAuth();
+  const { user, loading, signIn, signOut, firebaseConfigured, translateAuthError } = useAuth();
   const { mode, setMode } = useTheme();
 
   if (!firebaseConfigured) return <FirebaseSetupNotice themeMode={mode} onThemeChange={setMode} />;
@@ -133,7 +133,6 @@ function App() {
     return (
       <LoginScreen
         onSignIn={signIn}
-        onSignUp={signUp}
         translateAuthError={translateAuthError}
         themeMode={mode}
         onThemeChange={setMode}

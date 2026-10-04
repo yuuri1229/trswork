@@ -1,14 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
-  createUserWithEmailAndPassword,
   onAuthStateChanged,
   signInWithEmailAndPassword,
   signOut as firebaseSignOut,
-  updateProfile,
   type User,
 } from 'firebase/auth';
-import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
-import { auth, db, firebaseConfigured } from '../lib/firebase';
+import { auth, firebaseConfigured } from '../lib/firebase';
 
 export interface AuthError {
   message: string;
@@ -16,12 +13,8 @@ export interface AuthError {
 
 function translateAuthError(code: string): string {
   switch (code) {
-    case 'auth/email-already-in-use':
-      return 'このメールアドレスは既に登録されています。';
     case 'auth/invalid-email':
       return 'メールアドレスの形式が正しくありません。';
-    case 'auth/weak-password':
-      return 'パスワードは6文字以上にしてください。';
     case 'auth/invalid-credential':
     case 'auth/wrong-password':
     case 'auth/user-not-found':
@@ -46,17 +39,6 @@ export function useAuth() {
     });
   }, []);
 
-  const signUp = useCallback(async (name: string, email: string, password: string) => {
-    if (!auth || !db) throw new Error('Firebase is not configured');
-    const credential = await createUserWithEmailAndPassword(auth, email, password);
-    await updateProfile(credential.user, { displayName: name });
-    await setDoc(doc(db, 'users', credential.user.uid), {
-      name,
-      email,
-      createdAt: serverTimestamp(),
-    });
-  }, []);
-
   const signIn = useCallback(async (email: string, password: string) => {
     if (!auth) throw new Error('Firebase is not configured');
     await signInWithEmailAndPassword(auth, email, password);
@@ -67,5 +49,5 @@ export function useAuth() {
     await firebaseSignOut(auth);
   }, []);
 
-  return { user, loading, signUp, signIn, signOut, firebaseConfigured, translateAuthError };
+  return { user, loading, signIn, signOut, firebaseConfigured, translateAuthError };
 }
