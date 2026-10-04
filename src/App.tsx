@@ -3,6 +3,7 @@ import type { User } from 'firebase/auth';
 import Timer from './components/Timer';
 import CalendarView from './components/CalendarView';
 import MonthlyBarChart from './components/MonthlyBarChart';
+import BottomNav, { type Tab } from './components/BottomNav';
 import ExpensesView from './components/ExpensesView';
 import SettingsPanel from './components/SettingsPanel';
 import LoginScreen from './components/LoginScreen';
@@ -14,16 +15,6 @@ import { useTimeEntries } from './hooks/useTimeEntries';
 import { useExpenseEntries } from './hooks/useExpenseEntries';
 import { useRaceWorkEntries } from './hooks/useRaceWorkEntries';
 import { useTheme, type ThemeMode } from './hooks/useTheme';
-
-type Tab = 'timer' | 'calendar' | 'chart' | 'expenses' | 'settings';
-
-const TABS: { id: Tab; label: string }[] = [
-  { id: 'timer', label: 'タイマー' },
-  { id: 'calendar', label: 'カレンダー' },
-  { id: 'chart', label: 'グラフ' },
-  { id: 'expenses', label: '経費' },
-  { id: 'settings', label: '設定' },
-];
 
 interface AuthedAppProps {
   user: User;
@@ -80,7 +71,7 @@ function AuthedApp({ user, onSignOut, themeMode, onThemeChange }: AuthedAppProps
         <div className="flex w-20 justify-end">
           <button
             onClick={onSignOut}
-            className="text-xs font-medium text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300"
+            className="-mr-1 px-1 py-2 text-xs font-medium text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300"
             title={user.email ?? ''}
           >
             ログアウト
@@ -127,23 +118,7 @@ function AuthedApp({ user, onSignOut, themeMode, onThemeChange }: AuthedAppProps
         </div>
       </main>
 
-      <nav className="sticky bottom-0 border-t border-slate-200 bg-white/95 backdrop-blur dark:border-slate-700 dark:bg-slate-900/95">
-        <div className="mx-auto flex max-w-md">
-          {TABS.map((t) => (
-            <button
-              key={t.id}
-              onClick={() => setTab(t.id)}
-              className={`flex-1 py-3 text-sm font-medium transition ${
-                tab === t.id
-                  ? 'text-emerald-600 dark:text-emerald-400'
-                  : 'text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300'
-              }`}
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
-      </nav>
+      <BottomNav tab={tab} onChange={setTab} />
     </div>
   );
 }

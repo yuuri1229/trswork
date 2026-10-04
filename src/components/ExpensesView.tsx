@@ -112,16 +112,16 @@ export default function ExpensesView({
                     {entry.detail && ` ・ ${entry.detail}`}
                   </p>
                 </div>
-                <div className="flex shrink-0 gap-2 text-xs">
+                <div className="-mr-2 -my-2 flex shrink-0 text-xs">
                   <button
                     onClick={() => setEditingExpense(entry)}
-                    className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300"
+                    className="rounded-md px-3.5 py-3.5 text-slate-400 hover:text-slate-600 active:bg-slate-100 dark:text-slate-500 dark:hover:text-slate-300 dark:active:bg-slate-700"
                   >
                     編集
                   </button>
                   <button
                     onClick={() => onDeleteExpense(entry.id)}
-                    className="text-rose-400 hover:text-rose-600 dark:text-rose-400 dark:hover:text-rose-300"
+                    className="rounded-md px-3.5 py-3.5 text-rose-400 hover:text-rose-600 active:bg-rose-50 dark:text-rose-400 dark:hover:text-rose-300 dark:active:bg-slate-700"
                   >
                     削除
                   </button>
@@ -162,16 +162,16 @@ export default function ExpensesView({
                     {format(parseISO(entry.date), 'M月d日', { locale: ja })} ・ {entry.days}日 ・ {formatYen(entry.amount)}
                   </p>
                 </div>
-                <div className="flex shrink-0 gap-2 text-xs">
+                <div className="-mr-2 -my-2 flex shrink-0 text-xs">
                   <button
                     onClick={() => setEditingRaceWork(entry)}
-                    className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300"
+                    className="rounded-md px-3.5 py-3.5 text-slate-400 hover:text-slate-600 active:bg-slate-100 dark:text-slate-500 dark:hover:text-slate-300 dark:active:bg-slate-700"
                   >
                     編集
                   </button>
                   <button
                     onClick={() => onDeleteRaceWork(entry.id)}
-                    className="text-rose-400 hover:text-rose-600 dark:text-rose-400 dark:hover:text-rose-300"
+                    className="rounded-md px-3.5 py-3.5 text-rose-400 hover:text-rose-600 active:bg-rose-50 dark:text-rose-400 dark:hover:text-rose-300 dark:active:bg-slate-700"
                   >
                     削除
                   </button>

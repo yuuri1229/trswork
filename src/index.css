@@ -14,6 +14,29 @@ body {
   margin: 0;
   background-color: #f8fafc;
   font-family: system-ui, 'Segoe UI', Roboto, 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+  /* No grey flash on tap, and no text-size jump when the phone is rotated. */
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Taps register immediately: no double-tap-to-zoom delay on controls. */
+button,
+a,
+input,
+select,
+textarea,
+label {
+  touch-action: manipulation;
+}
+
+/* iOS zooms into any input under 16px when it gets focus, and an app added to the home
+   screen never zooms back out. Kept outside Tailwind's layers so it beats text-sm/text-xs. */
+@media (max-width: 640px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
 }
 
 :root.dark body {
