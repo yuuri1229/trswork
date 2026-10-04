@@ -48,23 +48,19 @@ function AuthedApp({ user, onSignOut, themeMode, onThemeChange }: AuthedAppProps
     finish,
     deleteEntry,
     updateEntry,
-    retrySync,
-    syncStatus,
-  } = useTimeEntries(user, settings);
+  } = useTimeEntries(user);
   const {
     entriesByMonth: expensesByMonth,
     addExpense,
     updateExpense,
     deleteExpense,
-  } = useExpenseEntries(user, settings);
+  } = useExpenseEntries(user);
   const {
     entriesByMonth: raceWorkByMonth,
     addRaceWork,
     updateRaceWork,
     deleteRaceWork,
-  } = useRaceWorkEntries(user, settings);
-
-  const unsyncedEntries = entries.filter((e) => !e.synced);
+  } = useRaceWorkEntries(user);
 
   return (
     <div className="mx-auto flex min-h-svh max-w-2xl flex-col bg-slate-50 dark:bg-slate-900">
@@ -126,13 +122,7 @@ function AuthedApp({ user, onSignOut, themeMode, onThemeChange }: AuthedAppProps
             />
           )}
           {tab === 'settings' && (
-            <SettingsPanel
-              settings={settings}
-              onChange={setSettings}
-              unsyncedEntries={unsyncedEntries}
-              syncStatus={syncStatus}
-              onRetrySync={retrySync}
-            />
+            <SettingsPanel settings={settings} onChange={setSettings} />
           )}
         </div>
       </main>

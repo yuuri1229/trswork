@@ -10,7 +10,10 @@ export function useSettings(uid: string) {
     if (!db) return;
     const settingsRef = doc(db, 'users', uid, 'settings', 'main');
     const unsubscribe = onSnapshot(settingsRef, (snap) => {
-      setSettingsState(snap.exists() ? { ...defaultSettings, ...(snap.data() as Partial<Settings>) } : defaultSettings);
+      // Pick known fields only, so leftovers from the removed Sheets integration
+      // (URL / shared secret) are dropped from state and from the doc on the next save.
+      const data = snap.exists() ? (snap.data() as Partial<Settings>) : {};
+      setSettingsState({ workerName: data.workerName ?? defaultSettings.workerName });
     });
     return unsubscribe;
   }, [uid]);
